@@ -30,12 +30,13 @@ trait WhereQuery
      */
     public function where($field, $op = null, $condition = null)
     {
+        $logic = 'AND';
         if ($field instanceof $this) {
             $this->parseQueryWhere($field);
 
             return $this;
         } elseif (true === $field || 1 === $field) {
-            $this->options['where']['AND'][] = true;
+            $this->options['where'][$logic][] = true;
 
             return $this;
         }
@@ -49,11 +50,11 @@ trait WhereQuery
         array_shift($param);
 
         if (is_array($field)) {
-            return $this->where(function ($query) use ($param, $condition, $op, $field) {
-                return $query->parseWhereExp('AND', $field, $op, $condition, $param);
+            return $this->where(function ($query) use ($param, $condition, $op, $field, $logic) {
+                return $query->parseWhereExp($logic, $field, $op, $condition, $param);
             });
         }
-        return $this->parseWhereExp('AND', $field, $op, $condition, $param);
+        return $this->parseWhereExp($logic, $field, $op, $condition, $param);
     }
 
     /**
@@ -95,14 +96,14 @@ trait WhereQuery
     {
         $param = func_get_args();
         array_shift($param);
-
+        $logic = 'OR';
         if (is_array($field)) {
-            return $this->where(function ($query) use ($param, $condition, $op, $field) {
-                return $query->parseWhereExp('OR', $field, $op, $condition, $param);
+            return $this->where(function ($query) use ($param, $condition, $op, $field, $logic) {
+                return $query->parseWhereExp($logic, $field, $op, $condition, $param);
             });
         }
 
-        return $this->parseWhereExp('OR', $field, $op, $condition, $param);
+        return $this->parseWhereExp($logic, $field, $op, $condition, $param);
     }
 
     /**

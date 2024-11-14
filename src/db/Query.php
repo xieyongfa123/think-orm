@@ -517,12 +517,24 @@ class Query extends BaseQuery
      */
     public function getQueryGuid($data = null): string
     {
+        $logic_closure_string = '';
         if (null === $data) {
             $data = $this->options;
             unset($data['scope'], $data['default_model']);
+            $logic_list = ['AND', 'OR', 'XOR'];
+            foreach ($logic_list as $logic) {
+                if (isset($data['where']) && isset($data['where'][$logic])) {
+                    foreach ($this->options['where'][$logic] as $key => $val) {
+                        if ($val instanceof \Closure) {
+                            $reflection           = new \ReflectionFunction($val);
+                            $static_properties    = $reflection->getStaticVariables();
+                            $logic_closure_string .= $logic . print_r($static_properties, true);
+                        }
+                    }
+                }
+            }
         }
-
-        return md5($this->getConfig('database') . serialize(var_export($data, true)) . serialize($this->getBind(false)));
+        return md5($this->getConfig('database') . serialize(var_export($data, true)) . serialize($this->getBind(false)) . serialize($logic_closure_string));
     }
 
     /**
